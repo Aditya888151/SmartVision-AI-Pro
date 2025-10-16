@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Camera Permission Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #000; color: #fff; }
+        video { width: 100%; max-width: 640px; height: auto; border: 2px solid #007acc; }
+        button { padding: 10px 20px; margin: 10px; background: #007acc; color: white; border: none; cursor: pointer; }
+        button:hover { background: #1177bb; }
+        .error { color: #ff6b6b; }
+        .success { color: #4ecdc4; }
+    </style>
+</head>
+<body>
+    <h1>Camera Permission Test</h1>
+    <p>This page helps test camera permissions for the biometric system.</p>
+    
+    <button onclick="testCamera()">Test Camera Access</button>
+    <button onclick="stopCamera()">Stop Camera</button>
+    
+    <div id="status"></div>
+    <video id="video" autoplay playsinline muted style="display:none;"></video>
+    
+    <script>
+        let stream = null;
+        const video = document.getElementById('video');
+        const status = document.getElementById('status');
+        
+        async function testCamera() {
+            status.innerHTML = '<p>Requesting camera access...</p>';
+            
+            try {
+                // Check if getUserMedia is supported
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('Camera not supported in this browser');
+                }
+                
+                // Get available cameras
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                
+                status.innerHTML += '<p>Available cameras:</p><ul>';
+                videoDevices.forEach((device, index) => {
+                    const isIriun = device.label.toLowerCase().includes('iriun');
+                    status.innerHTML += `<li>${index + 1}. ${device.label || 'Unknown Camera'} ${isIriun ? '<strong>(iRiun)</strong>' : ''}</li>`;
+                });
+                status.innerHTML += '</ul>';
+                
+                // Find iRiun webcam
+                const iriun = videoDevices.find(device => 
+                    device.label.toLowerCase().includes('iriun')
+                );
+                
+                // Request camera permission
+                if (iriun) {
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            deviceId: { exact: iriun.deviceId },
+                            width: { ideal: 1920, min: 1280 },
+                            height: { ideal: 1080, min: 720 }
+                        }
+                    });
+                    status.innerHTML += '<p class="success">Using iRiun webcam!</p>';
+                } else {
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            width: { ideal: 1280, min: 640 },
+                            height: { ideal: 720, min: 480 },
+                            facingMode: 'user'
+                        }
+                    });
+                    status.innerHTML += '<p>Using default camera (iRiun not found)</p>';
+                }
+                
+                video.srcObject = stream;
+                video.style.display = 'block';
+                
+                status.innerHTML = '<p class="success">✓ Camera access granted! Video should appear above.</p>';
+                
+                // Test biometric API
+                testBiometricAPI();
+                
+            } catch (error) {
+                console.error('Camera error:', error);
+                let errorMsg = '';
+                
+                if (error.name === 'NotAllowedError') {
+                    errorMsg = 'Camera permission denied. Please allow camera access in your browser settings.';
+                } else if (error.name === 'NotFoundError') {
+                    errorMsg = 'No camera found. Please connect a camera and try again.';
+                } else if (error.name === 'NotReadableError') {
+                    errorMsg = 'Camera is being used by another application.';
+                } else {
+                    errorMsg = `Camera error: ${error.message}`;
+                }
+                
+                status.innerHTML = `<p class="error">✗ ${errorMsg}</p>`;
+            }
+        }
+        
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+                video.style.display = 'none';
+                status.innerHTML = '<p>Camera stopped.</p>';
+            }
+        }
+        
+        async function testBiometricAPI() {
+            try {
+                const response = await fetch('http://localhost:8000/api/biometric/start-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ employee_id: 'TEST_USER' })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    status.innerHTML += '<p class="success">✓ Biometric API connection successful!</p>';
+                } else {
+                    status.innerHTML += '<p class="error">✗ Biometric API connection failed.</p>';
+                }
+            } catch (error) {
+                status.innerHTML += '<p class="error">✗ Cannot connect to biometric API. Make sure backend is running.</p>';
+            }
+        }
+        
+        // Auto-test on page load
+        window.onload = function() {
+            status.innerHTML = '<p>Click "Test Camera Access" to begin...</p>';
+        };
+    </script>
+</body>
+</html>
