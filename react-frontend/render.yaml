@@ -3,7 +3,9 @@ services:
     name: smartvision-frontend
     env: node
     buildCommand: npm install && npm run build
-    staticPublishPath: ./build
+    startCommand: npx serve -s build -l 3000
     envVars:
       - key: NODE_VERSION
         value: 18.17.0
+      - key: REACT_APP_API_URL
+        value: https://smartvision-backend.onrender.com
