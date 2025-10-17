@@ -39,7 +39,7 @@ app = FastAPI(
 # ---------------------- CORS ----------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "https://smartvision-frontend.onrender.com", "*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -51,6 +51,10 @@ app.include_router(camera_router)
 app.include_router(videodb_router)
 app.include_router(dashboard_router)
 app.include_router(attendance_router)
+
+@app.get("/")
+async def root():
+    return {"message": "SmartVision AI Pro Backend", "status": "running", "docs": "/docs"}
 
 @app.get("/api/")
 async def backend_root():
