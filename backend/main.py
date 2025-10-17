@@ -19,22 +19,13 @@ from api.employee_api import router as employee_router
 from optimized_camera_system import router as camera_router
 from api.videodb_api import router as videodb_router
 from api.dashboard_api import router as dashboard_router
-from api.recognition_api import router as recognition_router
 from api.attendance_api import router as attendance_router
-from api.deepface_api import router as deepface_router
-from api.enhanced_biometric_api import router as enhanced_biometric_router, advanced_router
 from services.videodb_integration import videodb_service
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize biometric database tables
-    try:
-        from init_biometric_db import init_biometric_tables
-        init_biometric_tables()
-        print("Biometric system initialized")
-    except Exception as e:
-        print(f"Warning: Biometric initialization failed: {e}")
+    print("SmartVision AI Pro starting...")
     yield
 
 
@@ -59,11 +50,7 @@ app.include_router(employee_router)
 app.include_router(camera_router)
 app.include_router(videodb_router)
 app.include_router(dashboard_router)
-app.include_router(recognition_router)
 app.include_router(attendance_router)
-app.include_router(deepface_router)
-app.include_router(enhanced_biometric_router)
-app.include_router(advanced_router)
 
 @app.get("/api/")
 async def backend_root():
