@@ -6,7 +6,7 @@ import {
 import RealTimeFaceDetection from '../FaceCapture/RealTimeFaceDetection';
 import CameraView from '../Camera/CameraView';
 import BasicBiometricCapture from '../BasicBiometricCapture';
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 const MainDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -77,7 +77,7 @@ const MainDashboard = () => {
 
   const loadDashboardData = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/dashboard/stats');
+      const response = await fetch(`${API_BASE_URL}/api/dashboard/stats`);
       const data = await response.json();
       setStats({
         totalEmployees: data.employees?.total || 0,
@@ -94,7 +94,7 @@ const MainDashboard = () => {
   
   const loadEmployees = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/employees/');
+      const response = await fetch(`${API_BASE_URL}/api/employees/`);
       const data = await response.json();
       setEmployees(data || []);
     } catch (error) {
@@ -105,7 +105,7 @@ const MainDashboard = () => {
   
   const loadCameras = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/cameras/');
+      const response = await fetch(`${API_BASE_URL}/api/cameras/`);
       const data = await response.json();
       setCameras(data || []);
       
@@ -152,7 +152,7 @@ const MainDashboard = () => {
         unique_id: `${employeeForm.employee_id}_${Date.now()}`
       };
       
-      const response = await fetch('http://localhost:8000/api/employees/', {
+      const response = await fetch(`${API_BASE_URL}/api/employees/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(employeeData)
@@ -176,7 +176,7 @@ const MainDashboard = () => {
     }
     
     try {
-      const response = await fetch('http://localhost:8000/api/cameras/', {
+      const response = await fetch(`${API_BASE_URL}/api/cameras/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({...cameraForm, detection_zones: []})
@@ -236,7 +236,7 @@ const MainDashboard = () => {
     }
     
     try {
-      await fetch(`http://localhost:8000/api/employees/${employeeId}`, { method: 'DELETE' });
+      await fetch(`${API_BASE_URL}/api/employees/${employeeId}`, { method: 'DELETE' });
       loadEmployees();
       loadDashboardData();
     } catch (error) {
@@ -250,7 +250,7 @@ const MainDashboard = () => {
     }
     
     try {
-      await fetch(`http://localhost:8000/api/cameras/${cameraId}`, { method: 'DELETE' });
+      await fetch(`${API_BASE_URL}/api/cameras/${cameraId}`, { method: 'DELETE' });
       loadCameras();
       loadDashboardData();
     } catch (error) {
@@ -262,7 +262,7 @@ const MainDashboard = () => {
     try {
       setCameraStates(prev => ({...prev, [cameraId]: 'starting'}));
       
-      const response = await fetch(`http://localhost:8000/api/cameras/${cameraId}/start`, { method: 'POST' });
+      const response = await fetch(`${API_BASE_URL}/api/cameras/${cameraId}/start`, { method: 'POST' });
       const data = await response.json();
       console.log('Start camera response:', data);
       
@@ -287,7 +287,7 @@ const MainDashboard = () => {
     try {
       setCameraStates(prev => ({...prev, [cameraId]: 'stopping'}));
       
-      const response = await fetch(`http://localhost:8000/api/cameras/${cameraId}/stop`, { method: 'POST' });
+      const response = await fetch(`${API_BASE_URL}/api/cameras/${cameraId}/stop`, { method: 'POST' });
       const data = await response.json();
       
       if (data.success) {
@@ -903,7 +903,7 @@ const MainDashboard = () => {
                       className="w-full h-32 bg-black rounded border-2 border-[#007acc] cursor-pointer hover:border-[#1177bb] transition-colors overflow-hidden shadow-md"
                     >
                       <img 
-                        src={`http://localhost:8000/api/cameras/${cam.camera_id}/stream`}
+                        src={`${API_BASE_URL}/api/cameras/${cam.camera_id}/stream`}
                         alt="Camera Preview"
                         className="w-full h-full object-cover"
                         onError={(e) => {
