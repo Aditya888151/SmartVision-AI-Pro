@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: smartvision-frontend
+    env: node
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./build
+    envVars:
+      - key: NODE_VERSION
+        value: 18.17.0

@@ -10,8 +10,8 @@ class FaceRecognitionAPI {
       // - Google Cloud Vision
       // - Face++ API
       // - OpenCV.js for client-side processing
-      local: `${process.env.REACT_APP_API_URL || ''}/api/face-recognition`,
-      backup: `${process.env.REACT_APP_API_URL || ''}/api/face-recognition/backup`
+      local: `${process.env.REACT_APP_API_URL || 'https://smartvision-backend.fly.dev'}/api/face-recognition`,
+      backup: `${process.env.REACT_APP_API_URL || 'https://smartvision-backend.fly.dev'}/api/face-recognition/backup`
     };
   }
 
